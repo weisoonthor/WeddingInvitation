@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Guest link maker</title>
+<style>
+:root{--ink:#211A1B;--soft:#675A5B;--line:#D9D2CE;--red:#B1141D;--bg:#F6F3F1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;padding:24px 16px 60px}
+main{max-width:860px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:1.4rem;margin:0}
+p{margin:0;color:var(--soft)}
+label{font-weight:600;display:block;margin-bottom:6px}
+input,textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);background:#fff;border-radius:6px}
+textarea{min-height:130px;resize:vertical}
+.row{display:grid;gap:6px}
+button,.btn{font:inherit;padding:9px 14px;border:1px solid var(--red);background:var(--red);color:#fff;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-block}
+button.alt,.btn.alt{background:#fff;color:var(--red)}
+.hint{font-size:.85rem}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{background:#EFE9E5;font-size:.85rem}
+td.link input{font-size:.8rem}
+td.act{white-space:nowrap;display:flex;gap:6px}
+.ok{color:#256B2F;font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Guest link maker · 宾客专属链接</h1>
+  <p>Each guest gets their own link. When they open it, their name shows on the invitation and is already filled into the RSVP form. Nothing is uploaded anywhere: this page works on your own device.</p>
+
+  <div class="row">
+    <label for="site">1. Your invitation website address (from Netlify)</label>
+    <input id="site" placeholder="https://your-site-name.netlify.app" inputmode="url" autocomplete="off">
+  </div>
+
+  <div class="row">
+    <label for="names">2. Guest names, one per line</label>
+    <textarea id="names" placeholder="Aunty Lim&#10;陈小明 &amp; 家人&#10;Uncle Tan, 60123456789"></textarea>
+    <p class="hint">Optional: add a comma and the phone number (with country code, no + or spaces) so the WhatsApp button opens that person's chat directly.</p>
+  </div>
+
+  <div class="row">
+    <label for="msg">3. Message to send with the link</label>
+    <textarea id="msg">亲爱的 {name}，诚邀您出席我们的婚宴（2027年9月20日，The Skye Penang）。请点击链接查看请柬并回复：
+{link}
+
+Dear {name}, we would love to have you at our wedding lunch on 20 September 2027 at The Skye Penang. Please open the invitation and RSVP here:
+{link}</textarea>
+    <p class="hint">{name} and {link} are replaced for each guest.</p>
+  </div>
+
+  <div><button id="go">Make links</button> <button id="copyall" class="alt" hidden>Copy all (Name + Link)</button> <span id="note" class="ok"></span></div>
+
+  <table id="out" hidden>
+    <thead><tr><th>Guest</th><th>Link</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+</main>
+<script>
+var $=function(s){return document.querySelector(s)};
+try{$('#site').value=localStorage.getItem('lm-site')||'';$('#names').value=localStorage.getItem('lm-names')||'';var m=localStorage.getItem('lm-msg');if(m)$('#msg').value=m}catch(e){}
+var rows=[];
+function note(t){$('#note').textContent=t;setTimeout(function(){$('#note').textContent=''},2500)}
+function copy(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(text).then(function(){note('Copied')},fallback);
+  fallback();
+  function fallback(){var t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();try{document.execCommand('copy');note('Copied')}catch(e){note('Select and copy by hand')}t.remove()}
+}
+$('#go').addEventListener('click',function(){
+  var site=$('#site').value.trim().replace(/\/+$/,'').replace(/\/index\.html$/i,'');
+  if(!/^https?:\/\//i.test(site)){note('Please enter the full website address starting with https://');return}
+  try{localStorage.setItem('lm-site',site);localStorage.setItem('lm-names',$('#names').value);localStorage.setItem('lm-msg',$('#msg').value)}catch(e){}
+  rows=[];var tb=$('#out tbody');tb.textContent='';
+  $('#names').value.split(/\r?\n/).forEach(function(line){
+    line=line.trim();if(!line)return;
+    var parts=line.split(',');var name=parts[0].trim();var phone=(parts[1]||'').replace(/\D/g,'');
+    if(!name)return;
+    var link=site+'/?guest='+encodeURIComponent(name);
+    var text=$('#msg').value.split('{name}').join(name).split('{link}').join(link);
+    var wa='https://wa.me/'+phone+'?text='+encodeURIComponent(text);
+    rows.push(name+'\t'+link);
+    var tr=document.createElement('tr');
+    var a=document.createElement('td');a.textContent=name;
+    var b=document.createElement('td');b.className='link';var inp=document.createElement('input');inp.readOnly=true;inp.value=link;inp.addEventListener('focus',function(){inp.select()});b.appendChild(inp);
+    var c=document.createElement('td');c.className='act';
+    var bc=document.createElement('button');bc.className='alt';bc.textContent='Copy link';bc.addEventListener('click',function(){copy(link)});
+    var bm=document.createElement('button');bm.className='alt';bm.textContent='Copy message';bm.addEventListener('click',function(){copy(text)});
+    var bw=document.createElement('a');bw.className='btn';bw.target='_blank';bw.rel='noopener';bw.href=wa;bw.textContent='WhatsApp';
+    c.appendChild(bc);c.appendChild(bm);c.appendChild(bw);
+    tr.appendChild(a);tr.appendChild(b);tr.appendChild(c);tb.appendChild(tr);
+  });
+  $('#out').hidden=!rows.length;$('#copyall').hidden=!rows.length;
+  note(rows.length?rows.length+' link(s) ready':'Please type at least one name');
+});
+$('#copyall').addEventListener('click',function(){copy(rows.join('\n'))});
+</script>
+</body>
+</html>
