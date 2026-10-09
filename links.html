@@ -34,7 +34,7 @@ td.act{white-space:nowrap;display:flex;gap:6px}
 
   <div class="row">
     <label for="site">1. Your invitation website address (from Netlify)</label>
-    <input id="site" placeholder="https://your-site-name.netlify.app" inputmode="url" autocomplete="off">
+    <input id="site" placeholder="https://weisoonthor.github.io/WeddingInvitation/" value="https://weisoonthor.github.io/WeddingInvitation/" inputmode="url" autocomplete="off">
   </div>
 
   <div class="row">
@@ -62,7 +62,7 @@ Dear {name}, we would love to have you at our wedding lunch on 20 September 2027
 </main>
 <script>
 var $=function(s){return document.querySelector(s)};
-try{$('#site').value=localStorage.getItem('lm-site')||'';$('#names').value=localStorage.getItem('lm-names')||'';var m=localStorage.getItem('lm-msg');if(m)$('#msg').value=m}catch(e){}
+try{$('#site').value=localStorage.getItem('lm-site')||$('#site').value;$('#names').value=localStorage.getItem('lm-names')||'';var m=localStorage.getItem('lm-msg');if(m)$('#msg').value=m}catch(e){}
 var rows=[];
 function note(t){$('#note').textContent=t;setTimeout(function(){$('#note').textContent=''},2500)}
 function copy(text){
