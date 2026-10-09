@@ -363,14 +363,16 @@ legend{padding:0; margin-bottom:10px}
 .stage.open .card{transform:none}
 .card .c-pic{position:relative!important; display:block!important; width:min(58%,190px); margin-top:6px}
 .card .c-pic .pic{width:100%; height:auto}
-.card .c-to{display:grid; justify-items:center; gap:3px; padding:2px 0 6px}
+.card .c-to{display:grid; justify-items:center; gap:5px; padding:2px 0 6px}
 .card [hidden]{display:none!important}
 .card .c-t .zh{font:400 13px/1.5 var(--font-brush); letter-spacing:.5em; margin-right:-.5em; color:var(--gold-text)}
 .card .c-t .en{font:300 9px/1.5 var(--font-sans); letter-spacing:.22em; text-transform:uppercase; color:var(--gold-text)}
 .card .c-name{display:grid; justify-items:center; gap:0; font-weight:400; color:var(--card-ink)}
 .card .c-name span{display:block; font:400 clamp(21px,6.6vw,25px)/1.3 var(--font-zh); font-style:italic; overflow-wrap:anywhere; text-wrap:balance}
 .card .c-name.cjk span{font-family:var(--font-brush); font-style:normal; letter-spacing:.1em}
-.card .c-name em{font:300 12px/1.2 var(--font-sans); font-style:normal; color:var(--gold); letter-spacing:.2em}
+.card .c-name small{display:block; margin-top:5px; font:400 15px/1.3 var(--font-brush); letter-spacing:.7em; margin-right:-.7em; color:var(--gold-text)}
+.card .c-name small.lat{font:300 11px/1.3 var(--font-sans); letter-spacing:.24em; margin-right:-.24em; text-transform:uppercase}
+.card .c-name em{font:300 12px/1.1 var(--font-sans); font-style:normal; color:var(--gold); letter-spacing:.2em; margin:1px 0}
 .stage.has-guest .env{margin-top:calc(66% + 70px)}
 /*@/DUO_CSS*/
 /*@KAI*/
@@ -753,11 +755,14 @@ function guestName(){
 }
 var GUEST=guestName();
 if(GUEST){
-  var parts=GUEST.split(/\s*[&＆]\s*/).filter(Boolean), nm=$('#c-name');
+  var sfx='', base=GUEST, mm=base.match(/^(.*?)\s*(夫妇|伉俪|一家|全家|阖家|家人|Family|and Family)$/i);
+  if(mm&&mm[1]){base=mm[1].replace(/\s*(&|＆|and)\s*$/i,'');sfx=mm[2]}
+  var parts=base.split(/\s*[&＆]\s*/).filter(Boolean), nm=$('#c-name');
   parts.forEach(function(t,i){
     if(i){var e=document.createElement('em');e.textContent='&';nm.appendChild(e)}
     var sp=document.createElement('span');sp.textContent=t;nm.appendChild(sp);
   });
+  if(sfx){var q=document.createElement('small');q.textContent=sfx;if(/^[a-z ]+$/i.test(sfx))q.className='lat';nm.appendChild(q)}
   if(/[\u3400-\u9fff]/.test(GUEST))nm.classList.add('cjk');
   $('.c-to').hidden=false; $('.c-zh').hidden=true; $('.c-en').hidden=true;
   $('#stage').classList.add('has-guest');
